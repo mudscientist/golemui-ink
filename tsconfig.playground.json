@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "es2022",
+    "verbatimModuleSyntax": true,
+    "target": "es2022",
+    "moduleResolution": "bundler",
+    "types": ["node"]
+  },
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx",
+    "src/lib/spec-helpers/**/*"
+  ],
+  // tsx applies the jsx option only to the files listed here, and the playground imports the
+  // package source.
+  "include": ["playground/**/*.ts", "playground/**/*.tsx", "src/**/*.ts", "src/**/*.tsx"]
+}
