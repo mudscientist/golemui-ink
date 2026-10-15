@@ -29,3 +29,20 @@ export function comparePaths(left: FocusPath, right: FocusPath): number {
   }
   return left.length - right.length;
 }
+
+/**
+ * Reports whether `path` is the container path itself or one of the paths below it.
+ *
+ * @param path - The path to test, usually the path of the focused widget.
+ * @param containerPath - The path of the widget that asks.
+ * @returns True when `path` starts with `containerPath`.
+ *
+ * @example
+ * isPathInside([2, 0, 1], [2]); // true
+ */
+export function isPathInside(path: FocusPath, containerPath: FocusPath): boolean {
+  if (path.length < containerPath.length) {
+    return false;
+  }
+  return containerPath.every((ordinal, level) => path[level] === ordinal);
+}

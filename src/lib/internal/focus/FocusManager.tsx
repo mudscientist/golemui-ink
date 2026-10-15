@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { toModifiedEnter } from './modified-enter';
-import { comparePaths, type FocusPath } from './path-order';
+import { comparePaths, isPathInside, type FocusPath } from './path-order';
 
 const NO_TERMINAL_MESSAGE = 'Keyboard input needs a terminal. The form is shown read-only.';
 
@@ -56,10 +56,18 @@ export type FocusManagerApi = {
    * first submit button in path order. Pass undefined to remove it.
    */
   setSubmitHandler: (uid: string, handler: SubmitHandler | undefined) => void;
+  /**
+   * Focuses the widget.
+   *
+   * @returns False when the widget is not registered or is inactive, and the focus stays.
+   */
+  focus: (uid: string) => boolean;
   /** Focuses the next widget in path order, wrapping around at the end. */
   focusNext: () => void;
   /** Focuses the previous widget in path order, wrapping around at the start. */
   focusPrevious: () => void;
+  /** True when the focused widget has the given path or a path below it. */
+  isInside: (containerPath: FocusPath) => boolean;
 };
 
 const FocusManagerContext = createContext<FocusManagerApi | null>(null);
@@ -206,6 +214,27 @@ export function FocusManager({ children }: FocusManagerProps) {
     submitHandlersRef.current.get(defaultButton.uid)?.();
   }, []);
 
+  const focus = useCallback(
+    (uid: string): boolean => {
+      if (!isInteractive || !registryRef.current.get(uid)?.isActive) {
+        return false;
+      }
+      applyActiveUid(uid);
+      return true;
+    },
+    [applyActiveUid, isInteractive],
+  );
+
+  // Reads the registry during render. That is safe here because every focus change renders every
+  // widget again with the new `activeUid`, and the registry already holds the focused widget then.
+  const isInside = useCallback(
+    (containerPath: FocusPath): boolean => {
+      const activeEntry = activeUid === undefined ? undefined : registryRef.current.get(activeUid);
+      return activeEntry !== undefined && isPathInside(activeEntry.path, containerPath);
+    },
+    [activeUid],
+  );
+
   const moveFocus = useCallback(
     (step: 1 | -1) => {
       const entries = orderedEntries();
@@ -293,8 +322,10 @@ export function FocusManager({ children }: FocusManagerProps) {
       unregister,
       setInputHandlers,
       setSubmitHandler,
+      focus,
       focusNext,
       focusPrevious,
+      isInside,
     }),
     [
       activeUid,
@@ -303,8 +334,10 @@ export function FocusManager({ children }: FocusManagerProps) {
       unregister,
       setInputHandlers,
       setSubmitHandler,
+      focus,
       focusNext,
       focusPrevious,
+      isInside,
     ],
   );
 

@@ -9,6 +9,7 @@ import type { ComponentType } from 'react';
  * message that names the type.
  */
 export type InkWidgetType =
+  | 'alert'
   | 'button'
   | 'checkbox'
   | 'currency'
@@ -16,6 +17,9 @@ export type InkWidgetType =
   | 'markdownText'
   | 'number'
   | 'password'
+  | 'radiogroup'
+  | 'repeater'
+  | 'select'
   | 'textarea'
   | 'textinput'
   | 'toggle';
@@ -30,6 +34,9 @@ export const widgetLoaders: WidgetLoaders<ComponentType<WithWidget>, InkWidgetTy
   currency: async () => (await import('./components/Currency')).Currency,
   number: async () => (await import('./components/NumberInput')).NumberInput,
   password: async () => (await import('./components/Password')).Password,
+  radiogroup: async () => (await import('./components/RadioGroup')).RadioGroup,
+  repeater: async () => (await import('./components/Repeater')).Repeater,
+  select: async () => (await import('./components/Select')).Select,
   textarea: async () => (await import('./components/TextArea')).TextArea,
   textinput: async () => (await import('./components/TextInput')).TextInput,
   toggle: async () => (await import('./components/Toggle')).Toggle,
@@ -38,5 +45,6 @@ export const widgetLoaders: WidgetLoaders<ComponentType<WithWidget>, InkWidgetTy
   grid: async () => (await import('./components/Grid')).Grid,
 
   // DISPLAY
+  alert: async () => (await import('./components/Alert')).Alert,
   markdownText: async () => (await import('./components/MarkdownText')).MarkdownText,
 };

@@ -122,7 +122,7 @@ Tab moves between the fields. Enter on the button prints the form data and ends 
 | `formHealth`          | Receives every change of the form health.                                                |
 | `formHealthBoundary`  | Replaces the red box that shows an errored form health. The form stays visible below it. |
 | `widgetErrorFallback` | Replaces the red box that shows a widget that threw while it rendered.                   |
-| `theme`               | Replaces colors and glyphs of the default theme. See [Theme](#theme).                    |
+| `theme`               | Replaces colors, glyphs and the border style of the default theme. See [Theme](#theme).  |
 | `ref`                 | Receives the `setData` and `setMeta` handle of the form.                                 |
 
 The widgets load through dynamic imports. `GuiForm` loads its own widgets and the
@@ -153,17 +153,23 @@ focus API, so a custom widget cannot take the keyboard focus.
   field has no bounds. A typed value is never clamped. The validator reports it.
 - Space toggles a checkbox or a toggle. Enter on a checkbox or a toggle moves to the next field,
   as in a text field.
+- The arrow keys in a radio group select the previous or the next option and wrap around. While
+  no option is selected, the first option is marked, and Space selects it. Enter moves to the
+  next field.
+- Enter or Space opens a select. Up and Down move the highlight, Enter picks the option, and
+  Escape closes the list without a change.
 - A paste into a text field is inserted as one text. Line breaks and other control characters are
   removed, as a browser does for a single-line input. A paste into a textarea keeps its line
   breaks.
 - Space or Enter on a button clicks it. When its `actionType` is `submit`, it also submits the
-  form.
+  form. The Add and Remove buttons of a repeater work the same way. After the last row is
+  removed, the focus moves to Add.
 - Ctrl+C ends the program. This is the Ink default.
 
 ## Widgets
 
-The set implements ten widget types. A form that uses any other type shows a form health error
-that names the type.
+The set implements fourteen widget types. A form that uses any other type shows a form health
+error that names the type.
 
 | Type           | In the terminal                                                                                                                                                                                                       |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -177,6 +183,10 @@ that names the type.
 | `number`       | One line with a caret. It stores a number, or `undefined` while the text is not a number.                                                                                                                             |
 | `currency`     | Like `number`. Without the focus it shows the amount formatted with the form locale, `currency` (`USD` by default) and the fraction digits. With the focus it shows the typed text and the formatted amount after it. |
 | `toggle`       | The on or off glyph and the label on one line. `togglePosition: 'right'` puts the glyph after the label.                                                                                                              |
+| `radiogroup`   | One line for each option, or all options on one line with `direction: 'row'`.                                                                                                                                         |
+| `select`       | The selected label between brackets. Enter opens a list of at most 8 options below it.                                                                                                                                |
+| `alert`        | The text in a box. The border and the text take the color of the `level`.                                                                                                                                             |
+| `repeater`     | One box for each row, with the title, the row number and a Remove button above the row fields. An Add button follows the rows. `limit` disables Add.                                                                  |
 
 ## Differences from the DOM widget sets
 
@@ -192,17 +202,23 @@ that names the type.
 - The height of a textarea is counted in rows: `round(minimumHeight / 20)`, at least 3. A line
   that is longer than the field wraps, so it takes more than one row, and the last rows of the
   field can be hidden.
-- These props are ignored: `icon` and `autocomplete` of `textinput`, `textarea`, `number` and
-  `currency`, and `autoGrow` of `number`.
+- `select` opens its list inside the form, below the field, instead of a native list. The list
+  shows at most 8 options and scrolls. It has no type-ahead.
+- The repeater emits `blur` once, when the focus leaves the whole repeater. The DOM repeater
+  emits it on every focus move inside it.
+- These props are ignored: `icon` and `autocomplete` of `textinput`, `textarea`, `number`,
+  `currency` and `select`, `autoGrow` of `number`, and `addButtonIcon` and `removeButtonIcon` of
+  `repeater`.
 
 ## Theme
 
-Every widget reads its colors and glyphs from the form theme. The `theme` prop replaces single
-keys of `defaultTheme`. Every key that it leaves out, or sets to `undefined`, keeps its default.
-Colors go to the `color` props of Ink unchanged, so a chalk color name and a hex string both work.
-A color with no default uses the terminal's own foreground color, which is readable on a dark and
-on a light background. The default glyphs are ASCII, so the form looks the same in a terminal
-without a unicode font.
+Every widget reads its colors, glyphs and border style from the form theme. The `theme` prop
+replaces single keys of `defaultTheme`. Every key that it leaves out, or sets to `undefined`,
+keeps its default. Colors go to the `color` props of Ink unchanged, so a chalk color name and a
+hex string both work. A color with no default uses the terminal's own foreground color, which is
+readable on a dark and on a light background. The default glyphs are ASCII, so the form looks the
+same in a terminal without a unicode font. The default border style, `round`, draws box drawing
+characters. `borderStyle: 'classic'` draws an ASCII border.
 
 ```tsx
 import { GuiForm } from 'golemui-ink';
@@ -216,23 +232,30 @@ import { GuiForm } from 'golemui-ink';
 />;
 ```
 
-| Key                  | Default | Used for                                                                           |
-| -------------------- | ------- | ---------------------------------------------------------------------------------- |
-| `colors.label`       | none    | Field labels.                                                                      |
-| `colors.value`       | none    | Field values and button labels.                                                    |
-| `colors.placeholder` | `gray`  | Placeholders.                                                                      |
-| `colors.focus`       | `cyan`  | The focus marker.                                                                  |
-| `colors.error`       | `red`   | Validation errors and a textarea counter over the limit.                           |
-| `colors.hint`        | `gray`  | Hints, the textarea counter, and the formatted amount of a focused currency field. |
-| `colors.border`      | `gray`  | The space of the focus marker when unfocused.                                      |
-| `colors.disabled`    | `gray`  | Values of disabled fields.                                                         |
-| `glyphs.checkboxOn`  | `[x]`   | A checked checkbox.                                                                |
-| `glyphs.checkboxOff` | `[ ]`   | An unchecked checkbox.                                                             |
-| `glyphs.toggleOn`    | `[on ]` | A toggle that is on.                                                               |
-| `glyphs.toggleOff`   | `[off]` | A toggle that is off.                                                              |
-| `glyphs.required`    | `*`     | The mark after the label of a required field.                                      |
-| `glyphs.cursor`      | `_`     | The caret of the focused text field.                                               |
-| `glyphs.focusMarker` | `>`     | The mark in front of the focused widget.                                           |
+| Key                  | Default  | Used for                                                                                         |
+| -------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `colors.label`       | none     | Field labels.                                                                                    |
+| `colors.value`       | none     | Field values and button labels.                                                                  |
+| `colors.placeholder` | `gray`   | Placeholders.                                                                                    |
+| `colors.focus`       | `cyan`   | The focus marker.                                                                                |
+| `colors.error`       | `red`    | Validation errors, a textarea counter over the limit, and `error` alerts.                        |
+| `colors.hint`        | `gray`   | Hints, the textarea counter, and the formatted amount of a focused currency field.               |
+| `colors.border`      | `gray`   | The space of the focus marker when unfocused, repeater rows, and `default` alerts.               |
+| `colors.disabled`    | `gray`   | Values of disabled fields.                                                                       |
+| `colors.info`        | `blue`   | `info` alerts.                                                                                   |
+| `colors.success`     | `green`  | `success` alerts.                                                                                |
+| `colors.warning`     | `yellow` | `warning` alerts.                                                                                |
+| `glyphs.checkboxOn`  | `[x]`    | A checked checkbox.                                                                              |
+| `glyphs.checkboxOff` | `[ ]`    | An unchecked checkbox.                                                                           |
+| `glyphs.toggleOn`    | `[on ]`  | A toggle that is on.                                                                             |
+| `glyphs.toggleOff`   | `[off]`  | A toggle that is off.                                                                            |
+| `glyphs.radioOn`     | `(*)`    | The selected option of a radio group.                                                            |
+| `glyphs.radioOff`    | `( )`    | An option of a radio group that is not selected.                                                 |
+| `glyphs.selectArrow` | `v`      | The end of a closed select.                                                                      |
+| `glyphs.required`    | `*`      | The mark after the label of a required field.                                                    |
+| `glyphs.cursor`      | `_`      | The caret of the focused text field.                                                             |
+| `glyphs.focusMarker` | `>`      | The mark in front of the focused widget.                                                         |
+| `borderStyle`        | `round`  | The border of repeater rows and alerts. Any border style name of Ink's `Box`, or a custom style. |
 
 ## Links
 
