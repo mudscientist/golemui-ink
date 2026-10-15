@@ -49,3 +49,26 @@ export function nextGraphemeIndex(text: string, index: number): number {
 export function countGraphemes(text: string): number {
   return Array.from(graphemeSegmenter.segment(text)).length;
 }
+
+/**
+ * Finds where a number of user-perceived characters ends.
+ *
+ * @param text - Any text.
+ * @param count - How many graphemes to skip from the start.
+ * @returns The string index after `count` graphemes, or `text.length` when the text is shorter.
+ *
+ * @example
+ * indexAfterGraphemes('a\u{1F600}b', 2); // 3
+ */
+export function indexAfterGraphemes(text: string, count: number): number {
+  let index = 0;
+  let skipped = 0;
+  for (const { segment } of graphemeSegmenter.segment(text)) {
+    if (skipped === count) {
+      break;
+    }
+    index += segment.length;
+    skipped++;
+  }
+  return index;
+}

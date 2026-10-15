@@ -136,35 +136,47 @@ focus API, so a custom widget cannot take the keyboard focus.
 
 - Tab moves to the next field. Shift+Tab moves to the previous field. The order is the order in
   which the widgets are drawn.
-- Enter in a text field moves to the next field. In a browser, a click outside the input does
-  the same. It marks the field as touched and runs the validation that a blur runs.
+- Enter in a text, number or currency field moves to the next field. In a browser, a click
+  outside the input does the same. It marks the field as touched and runs the validation that a
+  blur runs.
 - Ctrl+S submits the form from any field. It presses the first submit button in Tab order, which
   is the button that a browser clicks for Enter in a form field. When that button is disabled, or
   the form has no submit button, Ctrl+S does nothing. The focus stays where it is.
 - Left, Right, Home, End, Backspace and Delete edit the text at the caret. They move and delete
   one visible character, also when the character has several code points (an emoji, for example).
+- Enter in a textarea inserts a line break. Up and Down move the caret one line and keep its
+  column. Tab leaves the textarea, and Ctrl+S submits the form.
 - Enter with Shift, Ctrl or Alt works like Enter. That includes a terminal that sends it in the
   xterm modifyOtherKeys form, as Ghostty does by default.
-- Space toggles a checkbox. Enter on a checkbox moves to the next field, as in a text field.
+- Up and Down in a number or currency field step the value by `step` (1 by default). An empty
+  field steps from 0. A number field keeps the result between `minimum` and `maximum`. A currency
+  field has no bounds. A typed value is never clamped. The validator reports it.
+- Space toggles a checkbox or a toggle. Enter on a checkbox or a toggle moves to the next field,
+  as in a text field.
 - A paste into a text field is inserted as one text. Line breaks and other control characters are
-  removed, as a browser does for a single-line input.
+  removed, as a browser does for a single-line input. A paste into a textarea keeps its line
+  breaks.
 - Space or Enter on a button clicks it. When its `actionType` is `submit`, it also submits the
   form.
 - Ctrl+C ends the program. This is the Ink default.
 
 ## Widgets
 
-The set implements six widget types. A form that uses any other type shows a form health error
+The set implements ten widget types. A form that uses any other type shows a form health error
 that names the type.
 
-| Type           | In the terminal                                                                                                    |
-| -------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `grid`         | Stacks, rows, a fixed number of columns, or `columns: 'auto'`. Gaps are counted in terminal cells.                 |
-| `textinput`    | One line with a caret.                                                                                             |
-| `password`     | Like `textinput`, but draws one `*` for each character.                                                            |
-| `checkbox`     | The glyph and the label on one line.                                                                               |
-| `button`       | The label between brackets. The focus marker shows the focus, and also inverse video when the terminal has colors. |
-| `markdownText` | The markdown source as plain text.                                                                                 |
+| Type           | In the terminal                                                                                                                                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `grid`         | Stacks, rows, a fixed number of columns, or `columns: 'auto'`. Gaps are counted in terminal cells.                                                                                                                    |
+| `textinput`    | One line with a caret.                                                                                                                                                                                                |
+| `password`     | Like `textinput`, but draws one `*` for each character.                                                                                                                                                               |
+| `checkbox`     | The glyph and the label on one line.                                                                                                                                                                                  |
+| `button`       | The label between brackets. The focus marker shows the focus, and also inverse video when the terminal has colors.                                                                                                    |
+| `markdownText` | The markdown source as plain text.                                                                                                                                                                                    |
+| `textarea`     | Several lines with a caret. The text scrolls when it has more lines than the field. `autoGrow` shows every line. A counter shows when the validator has a `maxLength`.                                                |
+| `number`       | One line with a caret. It stores a number, or `undefined` while the text is not a number.                                                                                                                             |
+| `currency`     | Like `number`. Without the focus it shows the amount formatted with the form locale, `currency` (`USD` by default) and the fraction digits. With the focus it shows the typed text and the formatted amount after it. |
+| `toggle`       | The on or off glyph and the label on one line. `togglePosition: 'right'` puts the glyph after the label.                                                                                                              |
 
 ## Differences from the DOM widget sets
 
@@ -175,6 +187,13 @@ that names the type.
 - `button` ignores `variant`, `icon` and `iconPosition`.
 - A placeholder is hidden while its field has the focus.
 - A validation error replaces the hint of its field. It does not show below the hint.
+- A value that the host sets with `setData` while a text field, a number field or a textarea has
+  the focus shows after the field loses the focus.
+- The height of a textarea is counted in rows: `round(minimumHeight / 20)`, at least 3. A line
+  that is longer than the field wraps, so it takes more than one row, and the last rows of the
+  field can be hidden.
+- These props are ignored: `icon` and `autocomplete` of `textinput`, `textarea`, `number` and
+  `currency`, and `autoGrow` of `number`.
 
 ## Theme
 
@@ -197,21 +216,23 @@ import { GuiForm } from 'golemui-ink';
 />;
 ```
 
-| Key                  | Default | Used for                                      |
-| -------------------- | ------- | --------------------------------------------- |
-| `colors.label`       | none    | Field labels.                                 |
-| `colors.value`       | none    | Field values and button labels.               |
-| `colors.placeholder` | `gray`  | Placeholders.                                 |
-| `colors.focus`       | `cyan`  | The focus marker.                             |
-| `colors.error`       | `red`   | Validation errors.                            |
-| `colors.hint`        | `gray`  | Hints.                                        |
-| `colors.border`      | `gray`  | The space of the focus marker when unfocused. |
-| `colors.disabled`    | `gray`  | Values of disabled fields.                    |
-| `glyphs.checkboxOn`  | `[x]`   | A checked checkbox.                           |
-| `glyphs.checkboxOff` | `[ ]`   | An unchecked checkbox.                        |
-| `glyphs.required`    | `*`     | The mark after the label of a required field. |
-| `glyphs.cursor`      | `_`     | The caret of the focused text field.          |
-| `glyphs.focusMarker` | `>`     | The mark in front of the focused widget.      |
+| Key                  | Default | Used for                                                                           |
+| -------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `colors.label`       | none    | Field labels.                                                                      |
+| `colors.value`       | none    | Field values and button labels.                                                    |
+| `colors.placeholder` | `gray`  | Placeholders.                                                                      |
+| `colors.focus`       | `cyan`  | The focus marker.                                                                  |
+| `colors.error`       | `red`   | Validation errors and a textarea counter over the limit.                           |
+| `colors.hint`        | `gray`  | Hints, the textarea counter, and the formatted amount of a focused currency field. |
+| `colors.border`      | `gray`  | The space of the focus marker when unfocused.                                      |
+| `colors.disabled`    | `gray`  | Values of disabled fields.                                                         |
+| `glyphs.checkboxOn`  | `[x]`   | A checked checkbox.                                                                |
+| `glyphs.checkboxOff` | `[ ]`   | An unchecked checkbox.                                                             |
+| `glyphs.toggleOn`    | `[on ]` | A toggle that is on.                                                               |
+| `glyphs.toggleOff`   | `[off]` | A toggle that is off.                                                              |
+| `glyphs.required`    | `*`     | The mark after the label of a required field.                                      |
+| `glyphs.cursor`      | `_`     | The caret of the focused text field.                                               |
+| `glyphs.focusMarker` | `>`     | The mark in front of the focused widget.                                           |
 
 ## Links
 

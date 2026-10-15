@@ -23,6 +23,8 @@ export type Theme = {
   glyphs: {
     checkboxOn: string;
     checkboxOff: string;
+    toggleOn: string;
+    toggleOff: string;
     required: string;
     cursor: string;
     focusMarker: string;
@@ -59,6 +61,8 @@ export const defaultTheme: Theme = {
   glyphs: {
     checkboxOn: '[x]',
     checkboxOff: '[ ]',
+    toggleOn: '[on ]',
+    toggleOff: '[off]',
     required: '*',
     cursor: '_',
     focusMarker: '>',

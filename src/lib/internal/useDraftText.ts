@@ -41,10 +41,14 @@ function withoutControlCharacters(text: string): string {
   return result;
 }
 
-function insertAtCursor(current: DraftTextState, insertedText: string): DraftTextState {
+function insertAtCursor(
+  current: DraftTextState,
+  insertedText: string,
+  acceptsInsert: ((text: string) => boolean) | undefined,
+): DraftTextState {
   const { text, cursor } = current;
   const cleanText = withoutControlCharacters(insertedText);
-  if (cleanText === '') {
+  if (cleanText === '' || (acceptsInsert && !acceptsInsert(cleanText))) {
     return current;
   }
   return {
@@ -53,7 +57,12 @@ function insertAtCursor(current: DraftTextState, insertedText: string): DraftTex
   };
 }
 
-function applyKey(current: DraftTextState, input: string, key: Key): DraftTextState {
+function applyKey(
+  current: DraftTextState,
+  input: string,
+  key: Key,
+  acceptsInsert: ((text: string) => boolean) | undefined,
+): DraftTextState {
   const { text, cursor } = current;
   if (key.leftArrow) {
     return { text, cursor: previousGraphemeIndex(text, cursor) };
@@ -85,7 +94,7 @@ function applyKey(current: DraftTextState, input: string, key: Key): DraftTextSt
     return current;
   }
   // An input of several characters is a paste from a terminal without bracketed paste.
-  return insertAtCursor(current, input);
+  return insertAtCursor(current, input, acceptsInsert);
 }
 
 /** Options for {@link useDraftText}. */
@@ -94,6 +103,11 @@ export type DraftTextOptions = {
   initialText?: string;
   /** Called with the whole text after every edit that changed it. */
   onTextChanged?: (text: string) => void;
+  /**
+   * Decides whether a typed character or a pasted text is inserted, after control characters are
+   * removed. A rejected text is dropped whole. Omit it to insert every text.
+   */
+  acceptsInsert?: (text: string) => boolean;
 };
 
 /**
@@ -119,6 +133,7 @@ export type DraftTextOptions = {
 export function useDraftText({
   initialText = '',
   onTextChanged,
+  acceptsInsert,
 }: DraftTextOptions = {}): DraftText {
   const [state, setState] = useState<DraftTextState>(() => ({
     text: initialText,
@@ -141,11 +156,11 @@ export function useDraftText({
   }
 
   function handleKey(input: string, key: Key): boolean {
-    return applyChange(applyKey(stateRef.current, input, key));
+    return applyChange(applyKey(stateRef.current, input, key, acceptsInsert));
   }
 
   function insertText(text: string): boolean {
-    return applyChange(insertAtCursor(stateRef.current, text));
+    return applyChange(insertAtCursor(stateRef.current, text, acceptsInsert));
   }
 
   // Stable, because a widget calls it from an effect that lists it as a dependency.
