@@ -45,3 +45,43 @@ jobs:
       # Own step: the terminal specs depend on timing and fail under CPU load.
       - name: Test
         run: npm test
+
+  e2e:
+    # Runs the playground in a pseudo terminal with a terminal emulator. Its own job, so the
+    # tests do not share the CPU with the build. The ruleset on main requires the four
+    # "E2E (<OS>, Node <version>)" checks by name.
+    name: E2E (${{ matrix.os-name }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: [22, 24]
+        include:
+          - os: ubuntu-latest
+            os-name: Linux
+          - os: macos-latest
+            os-name: macOS
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload the screens of the failed checks
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-${{ matrix.os-name }}-node-${{ matrix.node }}
+          path: e2e/artifacts
+          if-no-files-found: ignore
+          retention-days: 7
