@@ -1,0 +1,9 @@
+Sign up
+Tab moves between fields. Enter on the button submits.
+Email*
+> _
+Password*
+  Enter your password...
+At least 6 characters
+  [ ] Subscribe to the newsletter
+  [ Sign up ]

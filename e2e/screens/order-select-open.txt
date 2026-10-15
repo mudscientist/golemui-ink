@@ -1,0 +1,25 @@
+Order
+╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Tab moves between fields. Ctrl+S submits the form from any field.                                │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+Plan*                                              Billing
+> [ Pro v]                                           (*) Monthly    ( ) Yearly
+  Free
+  Pro
+  Team
+Seats*                                             Budget
+  5                                                  €1,200.00
+  [on ] Send invoices by email
+Notes
+  Anything we should know
+
+
+200 / 200
+Contacts
+╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Contact 1   [ Remove ]                                                                           │
+│ Name                                             Email                                           │
+│   Ada Lovelace                                     ada@example.com                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+  [ Add ]
+  [ Place order ]
