@@ -26,6 +26,9 @@ export const keys = {
   end: `${ESCAPE_CHARACTER}[F`,
   pageUp: `${ESCAPE_CHARACTER}[5~`,
   pageDown: `${ESCAPE_CHARACTER}[6~`,
+  ctrlS: String.fromCharCode(19),
+  // Shift+Enter in the xterm modifyOtherKeys form, which Ghostty sends by default.
+  shiftEnterModifyOtherKeys: `${ESCAPE_CHARACTER}[27;2;13~`,
 };
 
 /**
@@ -69,11 +72,16 @@ async function waitForStableFrame(readFrame: () => string, attempts = 100): Prom
   }
 }
 
+// The vertical border of a box: '|' for the 'classic' style, U+2502 for 'single' and 'round'.
+const BOX_VERTICAL_LINE = String.fromCharCode(0x2502);
+const VERTICAL_BORDER = new RegExp(`^[|${BOX_VERTICAL_LINE}] | [|${BOX_VERTICAL_LINE}]$`, 'g');
+
 /**
  * Returns the frame line that holds the focus, with every run of spaces collapsed to one.
  *
  * Every focusable widget draws the focus marker in front of its value, so one line of the frame is
- * enough to name the focused widget in a tab order assertion.
+ * enough to name the focused widget in a tab order assertion. The border of a box around the line,
+ * a repeater row for example, is removed.
  *
  * @param frame - A frame without escape sequences, from `frame()`.
  * @returns The focused line, or an empty string when no widget holds the focus.
@@ -86,7 +94,7 @@ export function focusedLine(frame: string): string {
   if (focused === undefined) {
     return '';
   }
-  return focused.replace(/\s+/g, ' ').trim();
+  return focused.replace(/\s+/g, ' ').trim().replace(VERTICAL_BORDER, '').trim();
 }
 
 /**

@@ -39,6 +39,28 @@ describe('the theme of a form', () => {
     await vi.waitFor(() => expect(form.frame()).toContain('> [v] Subscribe*'));
   });
 
+  it('draws boxes with the border style the host sets', async () => {
+    const alertFormDef = {
+      form: [
+        {
+          uid: 'notice',
+          kind: 'display',
+          type: 'alert',
+          props: { text: 'Saved.', level: 'success' },
+        },
+      ],
+    };
+    const instance = render(
+      <GuiForm config={{ formDef: alertFormDef }} theme={{ borderStyle: 'classic' }} />,
+    );
+
+    await vi.waitFor(() => {
+      const frame = stripAnsi(instance.lastFrame());
+      expect(frame).toContain('+--');
+      expect(frame).toMatch(/\| Saved\. +\|/);
+    });
+  });
+
   it('keeps the default of a glyph the host sets to undefined', async () => {
     const form = renderWithTheme({ glyphs: { checkboxOff: undefined, focusMarker: '=>' } });
 

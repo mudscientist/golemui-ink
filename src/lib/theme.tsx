@@ -1,7 +1,14 @@
+import type { BoxProps } from 'ink';
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 /**
- * Colors and glyphs every ink widget reads before it renders.
+ * A border style name of Ink's `Box` (`'round'`, `'single'`, `'classic'` and others), or a custom
+ * style.
+ */
+export type ThemeBorderStyle = NonNullable<BoxProps['borderStyle']>;
+
+/**
+ * Colors, glyphs and the border style every ink widget reads before it renders.
  *
  * Color values are passed straight to Ink's `color` props, so they accept a chalk color name
  * ('cyan') or a hex string ('#00afff'). Glyphs are plain strings, so a host that knows its
@@ -19,14 +26,28 @@ export type Theme = {
     hint: string;
     border: string;
     disabled: string;
+    /** The border and the text of an `info` alert. */
+    info: string;
+    /** The border and the text of a `success` alert. */
+    success: string;
+    /** The border and the text of a `warning` alert. */
+    warning: string;
   };
   glyphs: {
     checkboxOn: string;
     checkboxOff: string;
+    toggleOn: string;
+    toggleOff: string;
+    radioOn: string;
+    radioOff: string;
+    /** Drawn at the end of a closed select. */
+    selectArrow: string;
     required: string;
     cursor: string;
     focusMarker: string;
   };
+  /** The border of a repeater row and of an alert. */
+  borderStyle: ThemeBorderStyle;
 };
 
 /**
@@ -39,11 +60,13 @@ export type Theme = {
 export type ThemeOverrides = {
   colors?: Partial<Theme['colors']>;
   glyphs?: Partial<Theme['glyphs']>;
+  borderStyle?: ThemeBorderStyle;
 };
 
 /**
  * The theme a form uses for every key the host does not replace. Every glyph is ASCII, so the
- * form renders the same in a terminal without a unicode font.
+ * form renders the same in a terminal without a unicode font. The default border style draws box
+ * drawing characters. `'classic'` is the ASCII border style.
  */
 export const defaultTheme: Theme = {
   colors: {
@@ -55,14 +78,23 @@ export const defaultTheme: Theme = {
     hint: 'gray',
     border: 'gray',
     disabled: 'gray',
+    info: 'blue',
+    success: 'green',
+    warning: 'yellow',
   },
   glyphs: {
     checkboxOn: '[x]',
     checkboxOff: '[ ]',
+    toggleOn: '[on ]',
+    toggleOff: '[off]',
+    radioOn: '(*)',
+    radioOff: '( )',
+    selectArrow: 'v',
     required: '*',
     cursor: '_',
     focusMarker: '>',
   },
+  borderStyle: 'round',
 };
 
 const ThemeContext = createContext<Theme>(defaultTheme);
@@ -90,12 +122,14 @@ export type ThemeProviderProps = {
 export function ThemeProvider({ overrides, children }: ThemeProviderProps) {
   const colorOverrides = overrides?.colors;
   const glyphOverrides = overrides?.glyphs;
+  const borderStyleOverride = overrides?.borderStyle;
   const theme = useMemo<Theme>(
     () => ({
       colors: { ...defaultTheme.colors, ...definedEntries(colorOverrides) },
       glyphs: { ...defaultTheme.glyphs, ...definedEntries(glyphOverrides) },
+      borderStyle: borderStyleOverride ?? defaultTheme.borderStyle,
     }),
-    [colorOverrides, glyphOverrides],
+    [colorOverrides, glyphOverrides, borderStyleOverride],
   );
   return <ThemeContext value={theme}>{children}</ThemeContext>;
 }

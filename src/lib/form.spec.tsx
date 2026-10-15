@@ -110,21 +110,7 @@ describe('GuiForm in a terminal', () => {
         formDef: {
           form: [
             { uid: 'name', kind: 'input', type: 'textinput', path: 'name', label: 'Name' },
-            {
-              uid: 'people',
-              kind: 'input',
-              type: 'repeater',
-              path: 'people',
-              props: {
-                template: {
-                  kind: 'layout',
-                  type: 'grid',
-                  children: [
-                    { kind: 'input', type: 'textinput', path: 'firstName', label: 'First name' },
-                  ],
-                },
-              },
-            },
+            { uid: 'cv', kind: 'input', type: 'fileUpload', path: 'cv', label: 'CV' },
           ],
         },
       });
@@ -132,7 +118,7 @@ describe('GuiForm in a terminal', () => {
       await vi.waitFor(() => {
         const frame = form.frame();
         expect(frame).toContain('GolemUI form error');
-        expect(frame).toContain('Widget "repeater" could not be loaded');
+        expect(frame).toContain('Widget "fileUpload" could not be loaded');
         // The rest of the form stays on screen below the error.
         expect(frame).toContain('Name');
       });

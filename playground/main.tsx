@@ -1,40 +1,34 @@
 import type { FormSubmitEvent } from '@golemui/core';
-import { gui, type GuiFormInitConfig } from '@golemui/gui-shared';
+import type { GuiFormInitConfig } from '@golemui/gui-shared';
 import { render } from 'ink';
 import { GuiForm } from '../src/index';
+import { orderForm } from './order-form';
+import { signUpForm } from './sign-up-form';
 
-// The custom heading shows that a widget the host writes renders next to the built-in ones.
-const customWidgetLoaders = {
-  heading: async () => (await import('./heading')).Heading,
+const forms: Record<string, GuiFormInitConfig> = {
+  'sign-up': signUpForm,
+  order: orderForm,
 };
 
-const config: GuiFormInitConfig = {
-  formDef: [
-    gui.layouts.grid([
-      gui.displays.custom('heading', { text: 'Sign up' }),
-      gui.displays.markdownText({ md: 'Tab moves between fields. Enter on the button submits.' }),
-      gui.inputs.textInput('login.email', {
-        label: 'Email',
-        placeholder: 'example@domain.com',
-        validator: { required: true },
-      }),
-      gui.inputs.password('login.password', {
-        label: 'Password',
-        placeholder: 'Enter your password...',
-        hint: 'At least 6 characters',
-        validator: { required: true, minLength: 6 },
-      }),
-      gui.inputs.checkbox('login.subscribe', { label: 'Subscribe to the newsletter' }),
-      gui.actions.button({ label: 'Sign up', actionType: 'submit' }),
-    ]),
-  ],
-  // Empty strings instead of no value, so an empty required field reports "This field is required".
-  data: { login: { email: '', password: '', subscribe: false } },
-  customWidgetLoaders,
-};
+// `npm start -- --form order` picks a form. Without the flag the playground shows the sign-up form.
+function readFormName(argv: string[]): string {
+  const flagIndex = argv.indexOf('--form');
+  if (flagIndex === -1 || flagIndex + 1 >= argv.length) {
+    return 'sign-up';
+  }
+  return argv[flagIndex + 1];
+}
 
 function onFormSubmit(event: FormSubmitEvent) {
   console.log(JSON.stringify(event.data));
+}
+
+const formName = readFormName(process.argv.slice(2));
+const config = forms[formName];
+
+if (!config) {
+  console.error(`Unknown form "${formName}". Available forms: ${Object.keys(forms).join(', ')}`);
+  process.exit(1);
 }
 
 render(<GuiForm config={config} formSubmit={onFormSubmit} />);
