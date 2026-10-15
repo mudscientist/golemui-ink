@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "es2022",
+    "verbatimModuleSyntax": true,
+    "target": "es2022",
+    "moduleResolution": "bundler",
+    "types": ["node", "vite/client"]
+  },
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx",
+    "src/lib/spec-helpers/**/*",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}
