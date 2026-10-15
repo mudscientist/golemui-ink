@@ -48,7 +48,8 @@ jobs:
 
   e2e:
     # Runs the playground in a pseudo terminal with a terminal emulator. Its own job, so the
-    # tests do not share the CPU with the build.
+    # tests do not share the CPU with the build. The ruleset on main requires the four
+    # "E2E (<OS>, Node <version>)" checks by name.
     name: E2E (${{ matrix.os-name }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
