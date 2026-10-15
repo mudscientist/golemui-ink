@@ -3,7 +3,10 @@ import { useFocusManager, type KeyHandler, type PasteHandler } from './focus/Foc
 
 /** The handlers of {@link useFocusedInput}. */
 export type FocusedInputHandlers = {
-  /** Receives every key except Tab, which the form uses to move the focus. */
+  /**
+   * Receives every key except Tab, which the form uses to move the focus, and Ctrl+S, which
+   * submits the form.
+   */
   onKey: KeyHandler;
   /** Receives a pasted text in one piece, line breaks included. Omit it to ignore pastes. */
   onPaste?: PasteHandler;

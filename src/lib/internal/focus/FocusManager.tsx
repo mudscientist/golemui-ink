@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { toModifiedEnter } from './modified-enter';
 import { comparePaths, type FocusPath } from './path-order';
 
 const NO_TERMINAL_MESSAGE = 'Keyboard input needs a terminal. The form is shown read-only.';
@@ -24,6 +25,9 @@ export type InputHandlers = {
   handleKey: KeyHandler;
   handlePaste: PasteHandler;
 };
+
+/** Presses a submit button, the same as Enter on it. */
+export type SubmitHandler = () => void;
 
 /** What the manager keeps for one registered widget. */
 type FocusEntry = {
@@ -44,9 +48,14 @@ export type FocusManagerApi = {
   unregister: (uid: string) => void;
   /**
    * Sets the handlers that receive the input of the widget while it holds the focus. Every key
-   * except Tab, which moves the focus, and every paste.
+   * except Tab, which moves the focus, and Ctrl+S, which presses the default button. Every paste.
    */
   setInputHandlers: (uid: string, handlers: InputHandlers) => void;
+  /**
+   * Sets the handler that Ctrl+S calls when this widget is the default button of the form: the
+   * first submit button in path order. Pass undefined to remove it.
+   */
+  setSubmitHandler: (uid: string, handler: SubmitHandler | undefined) => void;
   /** Focuses the next widget in path order, wrapping around at the end. */
   focusNext: () => void;
   /** Focuses the previous widget in path order, wrapping around at the start. */
@@ -83,6 +92,7 @@ export function FocusManager({ children }: FocusManagerProps) {
   const registryRef = useRef(new Map<string, FocusEntry>());
   // Kept apart from the registry, so a widget that registers again keeps its handlers.
   const inputHandlersRef = useRef(new Map<string, InputHandlers>());
+  const submitHandlersRef = useRef(new Map<string, SubmitHandler>());
   const [activeUid, setActiveUid] = useState<string | undefined>(undefined);
   const activeUidRef = useRef<string | undefined>(undefined);
   const hasInitialFocusRunRef = useRef(false);
@@ -148,6 +158,7 @@ export function FocusManager({ children }: FocusManagerProps) {
       const entry = registryRef.current.get(uid);
       registryRef.current.delete(uid);
       inputHandlersRef.current.delete(uid);
+      submitHandlersRef.current.delete(uid);
       if (activeUidRef.current !== uid) {
         return;
       }
@@ -166,6 +177,33 @@ export function FocusManager({ children }: FocusManagerProps) {
 
   const setInputHandlers = useCallback((uid: string, handlers: InputHandlers) => {
     inputHandlersRef.current.set(uid, handlers);
+  }, []);
+
+  const setSubmitHandler = useCallback((uid: string, handler: SubmitHandler | undefined) => {
+    if (handler) {
+      submitHandlersRef.current.set(uid, handler);
+    } else {
+      submitHandlersRef.current.delete(uid);
+    }
+  }, []);
+
+  // HTML implicit submission clicks the first submit button of the form, and does nothing when
+  // that button is disabled. Ctrl+S does the same.
+  const pressDefaultButton = useCallback(() => {
+    let defaultButton: { uid: string; entry: FocusEntry } | undefined;
+    for (const uid of submitHandlersRef.current.keys()) {
+      const entry = registryRef.current.get(uid);
+      if (!entry) {
+        continue;
+      }
+      if (!defaultButton || comparePaths(entry.path, defaultButton.entry.path) < 0) {
+        defaultButton = { uid, entry };
+      }
+    }
+    if (!defaultButton?.entry.isActive) {
+      return;
+    }
+    submitHandlersRef.current.get(defaultButton.uid)?.();
   }, []);
 
   const moveFocus = useCallback(
@@ -207,17 +245,22 @@ export function FocusManager({ children }: FocusManagerProps) {
   // Ink calls every subscription of one key in a row, so with a subscription per widget a key that
   // moves the focus would also reach the widget it focused.
   useInput(
-    (input, key) => {
+    (rawInput, rawKey) => {
       // The kitty keyboard protocol can also report the release of a key, which is not a new key.
-      if (key.eventType === 'release') {
+      if (rawKey.eventType === 'release') {
         return;
       }
+      const { input, key } = toModifiedEnter(rawInput, rawKey) ?? { input: rawInput, key: rawKey };
       if (key.tab) {
         if (key.shift) {
           focusPrevious();
         } else {
           focusNext();
         }
+        return;
+      }
+      if (key.ctrl && !key.meta && input === 's') {
+        pressDefaultButton();
         return;
       }
       const focusedUid = activeUidRef.current;
@@ -249,10 +292,20 @@ export function FocusManager({ children }: FocusManagerProps) {
       register,
       unregister,
       setInputHandlers,
+      setSubmitHandler,
       focusNext,
       focusPrevious,
     }),
-    [activeUid, isInteractive, register, unregister, setInputHandlers, focusNext, focusPrevious],
+    [
+      activeUid,
+      isInteractive,
+      register,
+      unregister,
+      setInputHandlers,
+      setSubmitHandler,
+      focusNext,
+      focusPrevious,
+    ],
   );
 
   return (

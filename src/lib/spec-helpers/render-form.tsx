@@ -26,6 +26,9 @@ export const keys = {
   end: `${ESCAPE_CHARACTER}[F`,
   pageUp: `${ESCAPE_CHARACTER}[5~`,
   pageDown: `${ESCAPE_CHARACTER}[6~`,
+  ctrlS: String.fromCharCode(19),
+  // Shift+Enter in the xterm modifyOtherKeys form, which Ghostty sends by default.
+  shiftEnterModifyOtherKeys: `${ESCAPE_CHARACTER}[27;2;13~`,
 };
 
 /**

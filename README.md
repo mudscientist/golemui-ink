@@ -138,8 +138,13 @@ focus API, so a custom widget cannot take the keyboard focus.
   which the widgets are drawn.
 - Enter in a text field moves to the next field. In a browser, a click outside the input does
   the same. It marks the field as touched and runs the validation that a blur runs.
+- Ctrl+S submits the form from any field. It presses the first submit button in Tab order, which
+  is the button that a browser clicks for Enter in a form field. When that button is disabled, or
+  the form has no submit button, Ctrl+S does nothing. The focus stays where it is.
 - Left, Right, Home, End, Backspace and Delete edit the text at the caret. They move and delete
   one visible character, also when the character has several code points (an emoji, for example).
+- Enter with Shift, Ctrl or Alt works like Enter. That includes a terminal that sends it in the
+  xterm modifyOtherKeys form, as Ghostty does by default.
 - Space toggles a checkbox. Enter on a checkbox moves to the next field, as in a text field.
 - A paste into a text field is inserted as one text. Line breaks and other control characters are
   removed, as a browser does for a single-line input.
