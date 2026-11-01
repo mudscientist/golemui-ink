@@ -1,4 +1,4 @@
-// Copied from golemui `libs/gui/components/src/lib/components/one-of.ts` at 2.1.0-rc.0, because
+// Copied from golemui `libs/gui/components/src/lib/components/one-of.ts` at 2.1.0, because
 // that package registers its Lit elements on import. Only the import line differs. Keep the rest
 // the same as that file, so a later golemui change can be compared line by line.
 import type { Option, OptionValue } from '@golemui/gui-shared/internals';
