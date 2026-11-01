@@ -1,4 +1,4 @@
-// Copied from golemui `libs/gui/components/src/lib/utils/messages.ts` at 2.1.0-rc.0. Keep it the
+// Copied from golemui `libs/gui/components/src/lib/utils/messages.ts` at 2.1.0. Keep it the
 // same as that file, so a later golemui change can be compared line by line.
 
 /**
@@ -122,6 +122,20 @@ export const DEFAULT_MESSAGES = {
   orderedList: 'Ordered List',
   unorderedList: 'Unordered List',
   splitView: 'Split View',
+
+  // ─── Sliders ───
+  minimum: 'Minimum',
+  maximum: 'Maximum',
+  notSet: 'Not set',
+  stepMismatch: 'Choose a valid value. The nearest is {nearest}.',
+
+  // ─── One-time codes: `{length}` is the number of digits ───
+  incompleteCode: 'Enter all {length} digits.',
+  invalidCode: 'Enter a {length}-digit code.',
+
+  // ─── Toasts ───
+  notifications: 'Notifications',
+  dismissNotification: 'Dismiss notification',
 
   // ─── File upload: `{name}` is the file name ───
   uploadFile: 'Upload file',

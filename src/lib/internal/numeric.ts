@@ -1,4 +1,4 @@
-// Copied from golemui `libs/gui/components/src/lib/utils/numeric.ts` at 2.1.0-rc.0: the accepted
+// Copied from golemui `libs/gui/components/src/lib/utils/numeric.ts` at 2.1.0: the accepted
 // characters, `isRealNumber`, `decimalsOf` and `stepValue`. The parts of that file that need Lit
 // or a DOM event are left out. Keep the copied parts the same as that file, so a later golemui
 // change can be compared line by line.

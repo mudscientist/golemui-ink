@@ -24,10 +24,10 @@ Ink instance itself.
 ## Install
 
 ```bash
-npm install golemui-ink @golemui/core@2.1.0-rc.0 @golemui/react@2.1.0-rc.0 @golemui/gui-shared@2.1.0-rc.0 ink@^7 react
+npm install golemui-ink @golemui/core@2.1.0 @golemui/react@2.1.0 @golemui/gui-shared@2.1.0 ink@^7 react
 ```
 
-This version of `golemui-ink` locks the `@golemui/*` packages at `2.1.0-rc.0`. Install every
+This version of `golemui-ink` locks the `@golemui/*` packages at `2.1.0`. Install every
 `@golemui/*` package at exactly that version. `golemui-ink` uses internal parts of
 `@golemui/gui-shared`, and those parts can change in any GolemUI release.
 
